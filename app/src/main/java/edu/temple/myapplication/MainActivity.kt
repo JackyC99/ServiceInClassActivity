@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)  // 🟢 This was missing
+        setContentView(R.layout.activity_main)
 
         bindService(
             Intent(this, TimerService::class.java),
@@ -46,9 +46,12 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.startButton).setOnClickListener {
             if (isConnected) {
-                timerBinder.start(100)
+                // Retrieve the last saved count or use a default value of 100
+                val startValue = getSharedPreferences("TimerPrefs", MODE_PRIVATE).getInt("count", 100)
+                timerBinder.start(startValue)
             }
         }
+
 
         findViewById<Button>(R.id.stopButton).setOnClickListener {
             if (isConnected) {
@@ -58,7 +61,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        unbindService(serviceConnection)
+        if (isConnected) unbindService(serviceConnection)
         super.onDestroy()
     }
 
@@ -72,7 +75,8 @@ class MainActivity : AppCompatActivity() {
             R.id.start_pause -> {
                 if (isConnected) {
                     if (!timerBinder.isRunning) {
-                        timerBinder.start(100)
+                        val startValue = getSharedPreferences("TimerPrefs", MODE_PRIVATE).getInt("count", 100)
+                        timerBinder.start(startValue)
                         item.title = "Pause"
                         item.setIcon(android.R.drawable.ic_media_pause)
                     } else {
@@ -90,6 +94,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 return true
             }
+
             else -> return false
         }
         return super.onOptionsItemSelected(item)
